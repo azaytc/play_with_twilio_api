@@ -6,8 +6,12 @@ require 'pry'
 require "sinatra/reloader"
 
 helpers do 
-  def params_correct?
-    redirect '/' if params[:phone].empty? && params[:message].empty?
+  def params_present?
+    !(params[:phone].empty? && params[:message].empty?)
+  end
+
+  def message
+    @message
   end
 end
 
@@ -31,13 +35,17 @@ class TwilioMessenger
   end
 end
 
-
 get "/" do
   haml :index
 end
 
 post "/send_message" do
-  @message = TwilioMessenger.send_message(params[:phone], params[:message]) if params_correct?
+  if params_present?
+    @message = TwilioMessenger.send_message(params[:phone], params[:message]) 
+    haml :status
+  else
+    haml :error
+  end
 end
 
 
@@ -57,5 +65,48 @@ __END__
     %br/
     %input{type: "submit", value: "Send Message"}/
 
+@@status
+%b status:
+= message.status
+%br/
+%b from:
+= message.from
+%br/
+%b to: 
+= message.to
+%br/
+%b body: 
+= message.body
+%br
+%b date_created:
+= message.date_created
+%br
+%b date_updated:
+= message.date_updated
+%br
+%b date_sent:
+= message.date_sent
+%br
+%b account_sid:
+= message.account_sid
+%br
+%b direction:
+= message.direction
+%br
+%b api_version:
+= message.api_version
+%br
+%b price:
+= message.price
+%br
+%b price_unit:
+= message.price_unit
+%br
+%b uri:
+= message.uri
 
+
+@@error
+%h5 Message or phone number can't be blank 
+%a{href: '/'} Try Again
   
